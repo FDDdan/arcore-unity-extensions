@@ -27,7 +27,7 @@ namespace Google.XR.ARCoreExtensions.Internal
     // Internal interface for ARReferencePoint native pointers.
     internal static class ARReferencePointExtensions
     {
-        public static IntPtr AnchorHandle(this ARReferencePoint referencePoint)
+        public static IntPtr AnchorHandle(this ARAnchor referencePoint)
         {
             NativePointerStruct info = (NativePointerStruct)
                 Marshal.PtrToStructure(

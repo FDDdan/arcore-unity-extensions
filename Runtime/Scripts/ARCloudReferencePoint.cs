@@ -37,6 +37,8 @@ namespace Google.XR.ARCoreExtensions
     public class ARCloudReferencePoint : MonoBehaviour, ITrackable
     {
         internal IntPtr m_AnchorHandle;
+        public IntPtr nativePtr => throw new NotImplementedException();
+
         private Pose m_Pose;
 
         /// <summary>
@@ -107,6 +109,8 @@ namespace Google.XR.ARCoreExtensions
                         m_AnchorHandle));
             }
         }
+
+        
 
         /// <summary>
         /// Unity Update method.

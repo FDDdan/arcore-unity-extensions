@@ -85,8 +85,8 @@ namespace Google.XR.ARCoreExtensions
         /// <returns>If successful, a <see cref="ARCloudReferencePoint"/>,
         /// otherwise <c>null</c>.</returns>
         public static ARCloudReferencePoint AddCloudReferencePoint(
-            this ARReferencePointManager referencePointManager,
-            ARReferencePoint referencePoint)
+            this ARAnchorManager referencePointManager,
+            ARAnchor referencePoint)
         {
             // Create the underlying ARCore Cloud Anchor.
             IntPtr cloudAnchorHandle = SessionApi.HostCloudAnchor(
@@ -158,7 +158,7 @@ namespace Google.XR.ARCoreExtensions
         /// <returns>If successful, a <see cref="ARCloudReferencePoint"/>,
         /// otherwise <c>null</c>.</returns>
         public static ARCloudReferencePoint ResolveCloudReferenceId(
-            this ARReferencePointManager referencePointManager,
+            this ARAnchorManager referencePointManager,
             string cloudReferenceId)
         {
             // Create the underlying ARCore Cloud Anchor.

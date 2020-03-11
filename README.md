@@ -1,4 +1,6 @@
-Google ARCore Extensions for AR Foundation
+Google ARCore Extensions for AR Foundation 3.1
+
+*using Anchor instead of Reference Point
 ==========================================
 Copyright 2019 Google LLC. All rights reserved.
 

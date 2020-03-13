@@ -41,7 +41,7 @@ namespace Google.XR.ARCoreExtensions.Internal
         // GUID to folder [ARCore Extensions]/Runtime
         private const string k_RuntimeFolderGUID = "df6f7c8173aef4ce18044d1392042d34";
 
-        private const string k_RuntimeConfigFolder = "/Configurations/RuntimeSettings";
+        private const string k_RuntimeConfigFolder = "/ARCoreRuntimeIOSExtensions/Configurations/RuntimeSettings";
 
         private const string k_RuntimeConfigAsset = "RuntimeConfig.asset";
 
@@ -53,14 +53,14 @@ namespace Google.XR.ARCoreExtensions.Internal
                 return;
             }
 
-            string folderPath = UnityEditor.AssetDatabase.GUIDToAssetPath(k_RuntimeFolderGUID) +
+            string folderPath = Application.dataPath +
                 k_RuntimeConfigFolder;
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
 
-            string assetPath = folderPath + "/" + k_RuntimeConfigAsset;
+            string assetPath = "Assets" + k_RuntimeConfigFolder + "/" + k_RuntimeConfigAsset;
             if (!File.Exists(assetPath))
             {
                 Debug.Log("Created ARCore Extensions RuntimeConfig for Preloaded Assets.");

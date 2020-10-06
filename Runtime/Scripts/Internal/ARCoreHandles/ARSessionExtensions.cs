@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="ARSessionExtensions.cs" company="Google">
+// <copyright file="ARSessionExtensions.cs" company="Google LLC">
 //
 // Copyright 2019 Google LLC. All Rights Reserved.
 //
@@ -29,6 +29,11 @@ namespace Google.XR.ARCoreExtensions.Internal
     {
         public static IntPtr SessionHandle(this ARSession session)
         {
+            if (session.subsystem == null || session.subsystem.nativePtr == null)
+            {
+                return IntPtr.Zero;
+            }
+
             NativePointerStruct info = (NativePointerStruct)
                 Marshal.PtrToStructure(
                     session.subsystem.nativePtr,

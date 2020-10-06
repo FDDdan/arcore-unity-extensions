@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="Translators.cs" company="Google">
+// <copyright file="Translators.cs" company="Google LLC">
 //
 // Copyright 2019 Google LLC. All Rights Reserved.
 //
@@ -25,41 +25,41 @@ namespace Google.XR.ARCoreExtensions.Internal
 
     internal static class Translators
     {
-        private static readonly Matrix4x4 k_UnityWorldToGLWorld
+        private static readonly Matrix4x4 _unityWorldToGLWorld
             = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
-        private static readonly Matrix4x4 k_UnityWorldToGLWorldInverse
-            = k_UnityWorldToGLWorld.inverse;
+        private static readonly Matrix4x4 _unityWorldToGLWorldInverse
+            = _unityWorldToGLWorld.inverse;
 
-        public static CloudReferenceState ToCloudReferenceState(ApiCloudAnchorState state)
+        public static CloudAnchorState ToCloudAnchorState(ApiCloudAnchorState state)
         {
             switch (state)
             {
                 case ApiCloudAnchorState.None:
-                    return CloudReferenceState.None;
+                    return CloudAnchorState.None;
                 case ApiCloudAnchorState.TaskInProgress:
-                    return CloudReferenceState.TaskInProgress;
+                    return CloudAnchorState.TaskInProgress;
                 case ApiCloudAnchorState.Success:
-                    return CloudReferenceState.Success;
+                    return CloudAnchorState.Success;
                 case ApiCloudAnchorState.ErrorInternal:
-                    return CloudReferenceState.ErrorInternal;
+                    return CloudAnchorState.ErrorInternal;
                 case ApiCloudAnchorState.ErrorNotAuthorized:
-                    return CloudReferenceState.ErrorNotAuthorized;
+                    return CloudAnchorState.ErrorNotAuthorized;
                 case ApiCloudAnchorState.ErrorResourceExhausted:
-                    return CloudReferenceState.ErrorResourceExhausted;
+                    return CloudAnchorState.ErrorResourceExhausted;
                 case ApiCloudAnchorState.ErrorHostingDatasetProcessingFailed:
-                    return CloudReferenceState.ErrorHostingDatasetProcessingFailed;
+                    return CloudAnchorState.ErrorHostingDatasetProcessingFailed;
                 case ApiCloudAnchorState.ErrorResolvingCloudIdNotFound:
-                    return CloudReferenceState.ErrorResolvingCloudIdNotFound;
+                    return CloudAnchorState.ErrorResolvingCloudIdNotFound;
                 case ApiCloudAnchorState.ErrorResolvingSDKTooOld:
-                    return CloudReferenceState.ErrorResolvingPackageTooOld;
+                    return CloudAnchorState.ErrorResolvingPackageTooOld;
                 case ApiCloudAnchorState.ErrorResolvingSDKTooNew:
-                    return CloudReferenceState.ErrorResolvingPackageTooNew;
+                    return CloudAnchorState.ErrorResolvingPackageTooNew;
                 case ApiCloudAnchorState.ErrorHostingServiceUnavailable:
-                    return CloudReferenceState.ErrorHostingServiceUnavailable;
+                    return CloudAnchorState.ErrorHostingServiceUnavailable;
             }
 
-            return CloudReferenceState.None;
+            return CloudAnchorState.None;
         }
 
         public static TrackingState ToTrackingState(ApiTrackingState state)
@@ -81,7 +81,7 @@ namespace Google.XR.ARCoreExtensions.Internal
             Matrix4x4 glWorld_T_glLocal =
                 Matrix4x4.TRS(unityPose.position, unityPose.rotation, Vector3.one);
             Matrix4x4 unityWorld_T_unityLocal =
-                k_UnityWorldToGLWorld * glWorld_T_glLocal * k_UnityWorldToGLWorldInverse;
+                _unityWorldToGLWorld * glWorld_T_glLocal * _unityWorldToGLWorldInverse;
 
             Vector3 position = unityWorld_T_unityLocal.GetColumn(3);
             Quaternion rotation = Quaternion.LookRotation(unityWorld_T_unityLocal.GetColumn(2),
@@ -106,7 +106,7 @@ namespace Google.XR.ARCoreExtensions.Internal
                     new Vector3(apiPose.X, apiPose.Y, apiPose.Z),
                     new Quaternion(apiPose.Qx, apiPose.Qy, apiPose.Qz, apiPose.Qw), Vector3.one);
             Matrix4x4 unityWorld_T_unityLocal =
-                k_UnityWorldToGLWorld * glWorld_T_glLocal * k_UnityWorldToGLWorldInverse;
+                _unityWorldToGLWorld * glWorld_T_glLocal * _unityWorldToGLWorldInverse;
 
             Vector3 position = unityWorld_T_unityLocal.GetColumn(3);
             Quaternion rotation = Quaternion.LookRotation(unityWorld_T_unityLocal.GetColumn(2),

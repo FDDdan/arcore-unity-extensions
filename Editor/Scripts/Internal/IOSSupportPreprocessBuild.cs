@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="IOSSupportPreprocessBuild.cs" company="Google">
+// <copyright file="IOSSupportPreprocessBuild.cs" company="Google LLC">
 //
 // Copyright 2019 Google LLC. All Rights Reserved.
 //
@@ -28,8 +28,8 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
 
     internal class IOSSupportPreprocessBuild : IPreprocessBuildWithReport
     {
-        [SuppressMessage("UnityRules.UnityStyleRules", "US1000:FieldsMustBeUpperCamelCase",
-         Justification = "Overriden property.")]
+        [SuppressMessage("UnityRules.UnityStyleRules",
+         "US1109:PublicPropertiesMustBeUpperCamelCase", Justification = "Overriden property.")]
         public int callbackOrder
         {
             get

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="AnchorController.cs" company="Google">
+// <copyright file="AnchorController.cs" company="Google LLC">
 //
 // Copyright 2019 Google LLC. All Rights Reserved.
 //
@@ -27,7 +27,7 @@ namespace Google.XR.ARCoreExtensions.Samples.CloudAnchors
 
     /// <summary>
     /// A Controller for the Anchor object that handles hosting and resolving the
-    /// <see cref="ARCloudReferencePoint"/>.
+    /// <see cref="ARCloudAnchor"/>.
     /// </summary>
 #pragma warning disable 618
     public class AnchorController : NetworkBehaviour
@@ -37,79 +37,78 @@ namespace Google.XR.ARCoreExtensions.Samples.CloudAnchors
         /// The customized timeout duration for resolving request to prevent retrying to resolve
         /// indefinitely.
         /// </summary>
-        private const float k_ResolvingTimeout = 10.0f;
+        private const float _resolvingTimeout = 10.0f;
 
         /// <summary>
-        /// The Cloud Reference ID for the hosted anchor's <see cref="ARCloudReferencePoint"/>.
+        /// The Cloud Anchor ID for the hosted anchor's <see cref="ARCloudAnchor"/>.
         /// This variable will be synchronized over all clients.
         /// </summary>
 #pragma warning disable 618
-        [SyncVar(hook = "_OnChangeId")]
+        [SyncVar(hook = "OnChangeId")]
 #pragma warning restore 618
-        private string m_CloudReferenceId = string.Empty;
+        private string _clouAnchorId = string.Empty;
 
         /// <summary>
         /// Indicates whether this script is running in the Host.
         /// </summary>
-        private bool m_IsHost = false;
+        private bool _isHost = false;
 
         /// <summary>
-        /// Indicates whether an attempt to resolve the Cloud Reference Point should be made.
+        /// Indicates whether an attempt to resolve the Cloud Anchor should be made.
         /// </summary>
-        private bool m_ShouldResolve = false;
+        private bool _shouldResolve = false;
 
         /// <summary>
-        /// Indicates whether to chekc Cloud Reference Point state and update the anchor.
+        /// Indicates whether to chekc Cloud Anchor state and update the anchor.
         /// </summary>
-        private bool m_ShouldUpdatePoint = false;
+        private bool _shouldUpdatePoint = false;
 
         /// <summary>
         /// Record the time since resolving started. If the timeout has passed, display
         /// additional instructions.
         /// </summary>
-        private float m_TimeSinceStartResolving = 0.0f;
+        private float _timeSinceStartResolving = 0.0f;
 
         /// <summary>
         /// Indicates whether passes the resolving timeout duration or the anchor has been
         /// successfully resolved.
         /// </summary>
-        private bool m_PassedResolvingTimeout = false;
+        private bool _passedResolvingTimeout = false;
 
         /// <summary>
         /// The anchor mesh object.
         /// In order to avoid placing the Anchor on identity pose, the mesh object should
         /// be disabled by default and enabled after hosted or resolved.
         /// </summary>
-        private GameObject m_AnchorMesh;
+        private GameObject _anchorMesh;
 
         /// <summary>
-        /// The Cloud Reference Point created locally which is used to moniter whether the
+        /// The Cloud Anchor created locally which is used to moniter whether the
         /// hosting or resolving process finished.
         /// </summary>
-        private ARCloudReferencePoint m_CloudReferencePoint;
+        private ARCloudAnchor _cloudAnchor;
 
         /// <summary>
         /// The Cloud Anchors example controller.
         /// </summary>
-        private CloudAnchorsExampleController m_CloudAnchorsExampleController;
+        private CloudAnchorsExampleController _cloudAnchorsExampleController;
 
         /// <summary>
-        /// The AR Reference Point Manager in the scene, used to host or resolve a Cloud Reference
-        /// Point.
+        /// The AR Anchor Manager in the scene, used to host or resolve a Cloud Anchor.
         /// </summary>
-        private ARReferencePointManager m_ReferencePointManager;
+        private ARAnchorManager _anchorManager;
 
         /// <summary>
         /// The Unity Awake() method.
         /// </summary>
         public void Awake()
         {
-            m_CloudAnchorsExampleController =
+            _cloudAnchorsExampleController =
                 GameObject.Find("CloudAnchorsExampleController")
                 .GetComponent<CloudAnchorsExampleController>();
-            m_ReferencePointManager = m_CloudAnchorsExampleController.ReferencePointManager;
-            m_AnchorMesh = transform.Find("AnchorMesh").gameObject;
-            m_AnchorMesh.SetActive(false);
+            _anchorManager = _cloudAnchorsExampleController.AnchorManager;
+            _anchorMesh = transform.Find("AnchorMesh").gameObject;
+            _anchorMesh.SetActive(false);
         }
 
         /// <summary>
@@ -117,9 +116,9 @@ namespace Google.XR.ARCoreExtensions.Samples.CloudAnchors
         /// </summary>
         public override void OnStartClient()
         {
-            if (m_CloudReferenceId != string.Empty)
+            if (_clouAnchorId != string.Empty)
             {
-                m_ShouldResolve = true;
+                _shouldResolve = true;
             }
         }
 
@@ -128,186 +127,178 @@ namespace Google.XR.ARCoreExtensions.Samples.CloudAnchors
         /// </summary>
         public void Update()
         {
-            if (m_IsHost)
+            if (_isHost)
             {
-                if (m_ShouldUpdatePoint)
+                if (_shouldUpdatePoint)
                 {
-                    _UpdateHostedCloudReferencePoint();
+                    UpdateHostedCloudAnchor();
                 }
             }
             else
             {
-                if (m_ShouldResolve)
+                if (_shouldResolve)
                 {
-                    if (!m_CloudAnchorsExampleController.IsResolvingPrepareTimePassed())
+                    if (!_cloudAnchorsExampleController.IsResolvingPrepareTimePassed())
                     {
                         return;
                     }
 
-                    if (!m_PassedResolvingTimeout)
+                    if (!_passedResolvingTimeout)
                     {
-                        m_TimeSinceStartResolving += Time.deltaTime;
+                        _timeSinceStartResolving += Time.deltaTime;
 
-                        if (m_TimeSinceStartResolving > k_ResolvingTimeout)
+                        if (_timeSinceStartResolving > _resolvingTimeout)
                         {
-                            m_PassedResolvingTimeout = true;
-                            m_CloudAnchorsExampleController.OnResolvingTimeoutPassed();
+                            _passedResolvingTimeout = true;
+                            _cloudAnchorsExampleController.OnResolvingTimeoutPassed();
                         }
                     }
 
-                    if (!string.IsNullOrEmpty(m_CloudReferenceId) && m_CloudReferencePoint == null)
+                    if (!string.IsNullOrEmpty(_clouAnchorId) && _cloudAnchor == null)
                     {
-                        _ResolveReferencePointId(m_CloudReferenceId);
+                        ResolveCloudAnchorId(_clouAnchorId);
                     }
                 }
 
-                if (m_ShouldUpdatePoint)
+                if (_shouldUpdatePoint)
                 {
-                    _UpdateResolvedCloudReferencePoint();
+                    UpdateResolvedCloudAnchor();
                 }
             }
         }
 
         /// <summary>
-        /// Command run on the server to set the Cloud Reference Id.
+        /// Command run on the server to set the Cloud Anchor Id.
         /// </summary>
-        /// <param name="cloudReferenceId">The new Cloud Reference Id.</param>
+        /// <param name="cloudAnchorId">The new Cloud Anchor Id.</param>
 #pragma warning disable 618
         [Command]
 #pragma warning restore 618
-        public void CmdSetCloudReferenceId(string cloudReferenceId)
+        public void CmdSetCloudAnchorId(string cloudAnchorId)
         {
-            Debug.Log("Update cloud reference id with: " + cloudReferenceId);
-            m_CloudReferenceId = cloudReferenceId;
+            Debug.Log("Update Cloud Anchor Id with: " + cloudAnchorId);
+            _clouAnchorId = cloudAnchorId;
         }
 
         /// <summary>
         /// Hosts the user placed cloud anchor and associates the resulting Id with this object.
         /// </summary>
-        /// <param name="referencePoint">The last placed anchor.</param>
-        public void HostReferencePoint(ARReferencePoint referencePoint)
+        /// <param name="anchor">The last placed anchor.</param>
+        public void HostAnchor(ARAnchor anchor)
         {
-            m_IsHost = true;
-            m_ShouldResolve = false;
-            transform.SetParent(referencePoint.transform);
-            m_AnchorMesh.SetActive(true);
+            _isHost = true;
+            _shouldResolve = false;
+            transform.SetParent(anchor.transform);
+            _anchorMesh.SetActive(true);
 
-            m_CloudReferencePoint =
-                ARReferencePointManagerExtensions.AddCloudReferencePoint(
-                    m_ReferencePointManager, referencePoint);
-            if (m_CloudReferencePoint == null)
+            _cloudAnchor = _anchorManager.HostCloudAnchor(anchor);
+            if (_cloudAnchor == null)
             {
-                Debug.LogError("Failed to add Cloud Reference Point.");
-                m_CloudAnchorsExampleController.OnAnchorHosted(
-                    false, "Failed to add Cloud Reference Point.");
-                m_ShouldUpdatePoint = false;
+                Debug.LogError("Failed to add Cloud Anchor.");
+                _cloudAnchorsExampleController.OnAnchorHosted(
+                    false, "Failed to add Cloud Anchor.");
+                _shouldUpdatePoint = false;
             }
             else
             {
-                m_ShouldUpdatePoint = true;
+                _shouldUpdatePoint = true;
             }
         }
 
         /// <summary>
-        /// Resolves the cloud reference Id and instantiate a Cloud Reference Point on it.
+        /// Resolves the Cloud Anchor Id and instantiate a Cloud Anchor on it.
         /// </summary>
-        /// <param name="cloudReferenceId">The cloud reference Id to be resolved.</param>
-        private void _ResolveReferencePointId(string cloudReferenceId)
+        /// <param name="cloudAnchorId">The Cloud Anchor Id to be resolved.</param>
+        private void ResolveCloudAnchorId(string cloudAnchorId)
         {
-            m_CloudAnchorsExampleController.OnAnchorInstantiated(false);
-            m_CloudReferencePoint =
-                ARReferencePointManagerExtensions.ResolveCloudReferenceId(
-                    m_ReferencePointManager, cloudReferenceId);
-            if (m_CloudReferencePoint == null)
+            _cloudAnchorsExampleController.OnAnchorInstantiated(false);
+            _cloudAnchor = _anchorManager.ResolveCloudAnchorId(cloudAnchorId);
+            if (_cloudAnchor == null)
             {
-                Debug.LogErrorFormat("Client could not resolve Cloud Reference Point {0}.",
-                    cloudReferenceId);
-                m_CloudAnchorsExampleController.OnAnchorResolved(
-                    false, "Client could not resolve Cloud Reference Point.");
-                m_ShouldResolve = true;
-                m_ShouldUpdatePoint = false;
+                Debug.LogErrorFormat("Client could not resolve Cloud Anchor {0}.", cloudAnchorId);
+                _cloudAnchorsExampleController.OnAnchorResolved(
+                    false, "Client could not resolve Cloud Anchor.");
+                _shouldResolve = true;
+                _shouldUpdatePoint = false;
             }
             else
             {
-                m_ShouldResolve = false;
-                m_ShouldUpdatePoint = true;
+                _shouldResolve = false;
+                _shouldUpdatePoint = true;
             }
         }
 
         /// <summary>
-        /// Update the anchor if hosting Cloud Reference Point is success.
+        /// Update the anchor if hosting Cloud Anchor is success.
         /// </summary>
-        private void _UpdateHostedCloudReferencePoint()
+        private void UpdateHostedCloudAnchor()
         {
-            if (m_CloudReferencePoint == null)
+            if (_cloudAnchor == null)
             {
-                Debug.LogError("No Cloud Reference Point.");
+                Debug.LogError("No Cloud Anchor.");
                 return;
             }
 
-            CloudReferenceState cloudReferenceState =
-                m_CloudReferencePoint.cloudReferenceState;
-            if (cloudReferenceState == CloudReferenceState.Success)
+            CloudAnchorState cloudAnchorState = _cloudAnchor.cloudAnchorState;
+            if (cloudAnchorState == CloudAnchorState.Success)
             {
-                CmdSetCloudReferenceId(m_CloudReferencePoint.cloudReferenceId);
-                m_CloudAnchorsExampleController.OnAnchorHosted(
-                    true, "Successfully hosted Cloud Reference Point.");
-                m_ShouldUpdatePoint = false;
+                CmdSetCloudAnchorId(_cloudAnchor.cloudAnchorId);
+                _cloudAnchorsExampleController.OnAnchorHosted(
+                    true, "Successfully hosted Cloud Anchor.");
+                _shouldUpdatePoint = false;
             }
-            else if (cloudReferenceState != CloudReferenceState.TaskInProgress)
+            else if (cloudAnchorState != CloudAnchorState.TaskInProgress)
             {
-                m_CloudAnchorsExampleController.OnAnchorHosted(false,
-                    "Fail to host Cloud Reference Point with state: " + cloudReferenceState);
-                m_ShouldUpdatePoint = false;
+                _cloudAnchorsExampleController.OnAnchorHosted(false,
+                    "Fail to host Cloud Anchor with state: " + cloudAnchorState);
+                _shouldUpdatePoint = false;
             }
         }
 
         /// <summary>
-        /// Update the anchor if resolving Cloud Reference Point is success.
+        /// Update the anchor if resolving Cloud Anchor is success.
         /// </summary>
-        private void _UpdateResolvedCloudReferencePoint()
+        private void UpdateResolvedCloudAnchor()
         {
-            if (m_CloudReferencePoint == null)
+            if (_cloudAnchor == null)
             {
-                Debug.LogError("No Cloud Reference Point.");
+                Debug.LogError("No Cloud Anchor.");
                 return;
             }
 
-            CloudReferenceState cloudReferenceState =
-                m_CloudReferencePoint.cloudReferenceState;
-            if (cloudReferenceState == CloudReferenceState.Success)
+            CloudAnchorState cloudAnchorState = _cloudAnchor.cloudAnchorState;
+            if (cloudAnchorState == CloudAnchorState.Success)
             {
-                transform.SetParent(m_CloudReferencePoint.transform, false);
-                m_CloudAnchorsExampleController.OnAnchorResolved(
+                transform.SetParent(_cloudAnchor.transform, false);
+                _cloudAnchorsExampleController.OnAnchorResolved(
                     true,
-                    "Successfully resolved Cloud Reference Point.");
-                m_CloudAnchorsExampleController.WorldOrigin = transform;
-                m_AnchorMesh.SetActive(true);
+                    "Successfully resolved Cloud Anchor.");
+                _cloudAnchorsExampleController.WorldOrigin = transform;
+                _anchorMesh.SetActive(true);
 
                 // Mark resolving timeout passed so it won't fire OnResolvingTimeoutPassed event.
-                m_PassedResolvingTimeout = true;
-                m_ShouldUpdatePoint = false;
+                _passedResolvingTimeout = true;
+                _shouldUpdatePoint = false;
             }
-            else if (cloudReferenceState != CloudReferenceState.TaskInProgress)
+            else if (cloudAnchorState != CloudAnchorState.TaskInProgress)
             {
-                m_CloudAnchorsExampleController.OnAnchorResolved(
-                    false,
-                    "Fail to resolve Cloud Reference Point with state: " + cloudReferenceState);
-                m_ShouldUpdatePoint = false;
+                _cloudAnchorsExampleController.OnAnchorResolved(
+                    false, "Fail to resolve Cloud Anchor with state: " + cloudAnchorState);
+                _shouldUpdatePoint = false;
             }
         }
 
         /// <summary>
-        /// Callback invoked once the Cloud Reference Id changes.
+        /// Callback invoked once the Cloud Anchor Id changes.
         /// </summary>
-        /// <param name="newId">New Cloud Reference Id.</param>
-        private void _OnChangeId(string newId)
+        /// <param name="newId">New Cloud Anchor Id.</param>
+        private void OnChangeId(string newId)
         {
-            if (!m_IsHost && newId != string.Empty)
+            if (!_isHost && newId != string.Empty)
             {
-                m_CloudReferenceId = newId;
-                m_ShouldResolve = true;
-                m_CloudReferencePoint = null;
+                _clouAnchorId = newId;
+                _shouldResolve = true;
+                _cloudAnchor = null;
             }
         }
     }

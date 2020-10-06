@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="PoseApi.cs" company="Google">
+// <copyright file="PoseApi.cs" company="Google LLC">
 //
 // Copyright 2019 Google LLC. All Rights Reserved.
 //
@@ -21,6 +21,7 @@
 namespace Google.XR.ARCoreExtensions.Internal
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
     using UnityEngine;
 
@@ -28,7 +29,12 @@ namespace Google.XR.ARCoreExtensions.Internal
     {
         public static IntPtr Create(IntPtr sessionHandle)
         {
-            ApiPose apiPose = new ApiPose();
+            return Create(sessionHandle, Pose.identity);
+        }
+
+        public static IntPtr Create(IntPtr sessionHandle, Pose pose)
+        {
+            ApiPose apiPose = Translators.ToApiPose(pose);
             IntPtr poseHandle = IntPtr.Zero;
             ExternApi.ArPose_create(
                 sessionHandle,
@@ -54,6 +60,8 @@ namespace Google.XR.ARCoreExtensions.Internal
             return apiPose;
         }
 
+        [SuppressMessage("UnityRules.UnityStyleRules", "US1113:MethodsMustBeUpperCamelCase",
+         Justification = "External call.")]
         private struct ExternApi
         {
             [DllImport(ApiConstants.ARCoreNativeApi)]

@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------
-// <copyright file="RuntimeConfig.cs" company="Google">
+// <copyright file="RuntimeConfig.cs" company="Google LLC">
 //
-// Copyright 2019 Google LLC. All Rights Reserved.
+// Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,15 +23,11 @@ namespace Google.XR.ARCoreExtensions.Internal
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
+    using UnityEditor;
     using UnityEngine;
 
-    /// <summary>
-    /// Stores all ARCore Extensions runtime configuration which is used for a cross-platform
-    /// ARCore session.
-    /// Note: it can only be used as singleton.
-    /// </summary>
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:ElementsMustBeDocumented",
-     Justification = "Internal")]
+        Justification = "Internal")]
     public class RuntimeConfig : ScriptableObject
     {
         public static RuntimeConfig Instance;
@@ -39,11 +35,11 @@ namespace Google.XR.ARCoreExtensions.Internal
         public string IOSCloudServicesApiKey;
 
         // GUID to folder [ARCore Extensions]/Runtime
-        private const string k_RuntimeFolderGUID = "df6f7c8173aef4ce18044d1392042d34";
+        private const string _runtimeFolderGUID = "df6f7c8173aef4ce18044d1392042d34";
 
-        private const string k_RuntimeConfigFolder = "/Configurations/RuntimeSettings";
+        private const string _runtimeConfigFolder = "/Configurations/RuntimeSettings";
 
-        private const string k_RuntimeConfigAsset = "RuntimeConfig.asset";
+        private const string _runtimeConfigAsset = "RuntimeConfig.asset";
 
 #if UNITY_EDITOR
         public static void LoadInstance()
@@ -53,31 +49,29 @@ namespace Google.XR.ARCoreExtensions.Internal
                 return;
             }
 
-            string folderPath = UnityEditor.AssetDatabase.GUIDToAssetPath(k_RuntimeFolderGUID) +
-                k_RuntimeConfigFolder;
+            string folderPath = AssetDatabase.GUIDToAssetPath(_runtimeFolderGUID) + _runtimeConfigFolder;
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
 
-            string assetPath = folderPath + "/" + k_RuntimeConfigAsset;
+            string assetPath = folderPath + "/" + _runtimeConfigAsset;
             if (!File.Exists(assetPath))
             {
                 Debug.Log("Created ARCore Extensions RuntimeConfig for Preloaded Assets.");
                 var config = CreateInstance<RuntimeConfig>();
-                UnityEditor.AssetDatabase.CreateAsset(config, assetPath);
+                AssetDatabase.CreateAsset(config, assetPath);
                 Instance = config;
             }
             else
             {
-                Instance = UnityEditor.AssetDatabase.LoadAssetAtPath<RuntimeConfig>(assetPath);
+                Instance = AssetDatabase.LoadAssetAtPath<RuntimeConfig>(assetPath);
             }
         }
 
         public static void UploadInstance()
         {
-            var preloadedAssets = UnityEditor.PlayerSettings.GetPreloadedAssets().ToList();
-            preloadedAssets.RemoveAll(x => x == null);
+            var preloadedAssets = PlayerSettings.GetPreloadedAssets().ToList();
             preloadedAssets.RemoveAll(x => x.GetType() == typeof(RuntimeConfig));
 
             if (Instance == null)
@@ -87,7 +81,7 @@ namespace Google.XR.ARCoreExtensions.Internal
             }
 
             preloadedAssets.Add(Instance);
-            UnityEditor.PlayerSettings.SetPreloadedAssets(preloadedAssets.ToArray());
+            PlayerSettings.SetPreloadedAssets(preloadedAssets.ToArray());
             Debug.Log("Updated ARCore Extensions RuntimeConfig in Preloaded Assets.");
         }
 

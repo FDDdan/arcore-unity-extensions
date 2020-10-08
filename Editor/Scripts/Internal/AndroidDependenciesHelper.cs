@@ -84,8 +84,11 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
                 return;
             }
 
-            string dependenciesXMLPath = dependenciesTemplatePath.Replace(
-                _templateFileExtension, _playServiceDependencyFileExtension);
+            // string dependenciesXMLPath = dependenciesTemplatePath.Replace(
+            //    _templateFileExtension, _playServiceDependencyFileExtension);
+
+            string dependenciesXMLPath = Path.Combine(Application.dataPath, "Plugins","Android", Path.GetFileName(dependenciesTemplatePath.Replace(_templateFileExtension, _playServiceDependencyFileExtension)));
+            Debug.Log("Dependencies XML Path: " + dependenciesXMLPath);
 
             if (enabledDependencies && !File.Exists(dependenciesXMLPath))
             {

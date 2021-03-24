@@ -20,6 +20,7 @@
 
 namespace Google.XR.ARCoreExtensions
 {
+    using Google.XR.ARCoreExtensions.Internal;
     using UnityEngine;
     using UnityEngine.Serialization;
 
@@ -35,7 +36,7 @@ namespace Google.XR.ARCoreExtensions
         [Header("Cloud Anchors")]
 
         /// <summary>
-        /// Gets or sets the <see cref="CloudAnchorMode"/> to use.
+        /// Gets or sets the <c><see cref="CloudAnchorMode"/></c> to use.
         /// </summary>
         [Tooltip("Chooses which Cloud Anchors mode will be used in ARCore Extensions session.")]
         [FormerlySerializedAs("EnableCloudAnchors")]
@@ -70,12 +71,13 @@ namespace Google.XR.ARCoreExtensions
         public override bool Equals(object other)
         {
             ARCoreExtensionsConfig otherConfig = other as ARCoreExtensionsConfig;
-            if (otherConfig == null)
+            if (otherConfig == null ||
+                CloudAnchorMode != otherConfig.CloudAnchorMode)
             {
                 return false;
             }
 
-            return CloudAnchorMode == otherConfig.CloudAnchorMode;
+            return true;
         }
 
         /// <summary>

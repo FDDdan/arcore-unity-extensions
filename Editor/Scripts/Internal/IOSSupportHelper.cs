@@ -24,14 +24,26 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
     using UnityEditor;
     using UnityEngine;
 
-    internal static class IOSSupportHelper
+    /// <summary>
+    /// IOS support helper class.
+    /// </summary>
+    public static class IOSSupportHelper
     {
+        // GUID of plugin [ARCore Extensions Package]/Editor/ExternalDependencyManager/
+        //     Editor/Google.IOSResolver_{version}.dll.meta
+        private const string _iosResolverGuid = "f7ad2228faf74a398ae7d46a32a25174";
+
         // GUID of folder [ARCore Extensions Package]/Editor/BuildResources/
         private const string _arCoreIOSDependencyFolderGUID = "117437286c43f4eeb845c3257f2a8546";
 
         private const string _arCoreIOSDependencyFileName = "ARCoreiOSDependencies";
         private const string _arCoreExtensionIOSSupportSymbol = "ARCORE_EXTENSIONS_IOS_SUPPORT";
 
+        /// <summary>
+        /// Enables ARCore iOS Support in Extensions.
+        /// </summary>
+        /// <param name="arcoreIOSEnabled">Indicates whether to enable or disable iOS support.
+        /// </param>
         public static void SetARCoreIOSSupportEnabled(bool arcoreIOSEnabled)
         {
             if (arcoreIOSEnabled)
@@ -50,9 +62,17 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
             UpdateIOSPodDependencies(arcoreIOSEnabled, _arCoreIOSDependencyFileName);
         }
 
+        /// <summary>
+        /// Updates the iOS pod dependency based on iOS support state.
+        /// </summary>
+        /// <param name="arcoreIOSEnabled">Enable or disable the dependency.
+        /// </param>
+        /// <param name="dependencyFileName">The file name of the dependency template.</param>
         public static void UpdateIOSPodDependencies(bool arcoreIOSEnabled,
             string dependencyFileName)
         {
+            EnableIOSResolver();
+
             string dependencyFolderFullPath = Path.GetFullPath(
                 AssetDatabase.GUIDToAssetPath(_arCoreIOSDependencyFolderGUID));
             string iOSPodDependencyTemplatePath =
@@ -103,9 +123,26 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
             {
                 Debug.LogFormat("Removing {0} define symbol.", _arCoreExtensionIOSSupportSymbol);
                 iOSScriptingDefineSymbols = iOSScriptingDefineSymbols.Replace(
-                        _arCoreExtensionIOSSupportSymbol, string.Empty);
+                    _arCoreExtensionIOSSupportSymbol, string.Empty);
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(
                     BuildTargetGroup.iOS, iOSScriptingDefineSymbols);
+            }
+        }
+
+        private static void EnableIOSResolver()
+        {
+            string iosResolverPath = AssetDatabase.GUIDToAssetPath(_iosResolverGuid);
+            if (iosResolverPath == null)
+            {
+                Debug.LogError("ARCoreExtensions: Could not locate Google.IOSResolver plugin.");
+                return;
+            }
+
+            PluginImporter pluginImporter =
+                AssetImporter.GetAtPath(iosResolverPath) as PluginImporter;
+            if (!pluginImporter.GetCompatibleWithEditor())
+            {
+                pluginImporter.SetCompatibleWithEditor(true);
             }
         }
     }

@@ -30,6 +30,20 @@ namespace Google.XR.ARCoreExtensions
     public static class XRCameraConfigurationExtensions
     {
         /// <summary>
+        /// Gets the camera facing direction for this camera config.
+        /// </summary>
+        /// <param name="cameraConfig">An XRCameraConfiguration instance.
+        /// </param>
+        /// <returns>Returns the camera facing direction.</returns>
+        public static CameraConfigFacingDirection GetFacingDirection(
+            this XRCameraConfiguration cameraConfig)
+        {
+            return CameraConfigApi.GetFacingDirection(
+                ARCoreExtensions._instance.currentARCoreSessionHandle,
+                cameraConfig.nativeConfigurationHandle);
+        }
+
+        /// <summary>
         /// Gets the dimensions of the GPU-accessible external texture for this camera config.
         /// </summary>
         /// <param name="cameraConfig">An XRCameraConfiguration instance.
@@ -56,15 +70,32 @@ namespace Google.XR.ARCoreExtensions
         }
 
         /// <summary>
-        /// Gets the depth sensor usage for this camera config.
+        /// Gets the hardware depth sensor, such as a time-of-flight sensor (or ToF sensor), usage
+        /// for this camera config.
         /// </summary>
         /// <param name="cameraConfig">An XRCameraConfiguration instance.
         /// </param>
-        /// <returns>Returns the depth sensor usage type.</returns>
+        /// <returns>
+        /// Returns the hardware depth sensor, such as a time-of-flight sensor (or ToF sensor),
+        /// usage type.
+        /// </returns>
         public static CameraConfigDepthSensorUsage GetDepthSensorUsage(
             this XRCameraConfiguration cameraConfig)
         {
             return CameraConfigApi.GetDepthSensorUsage(
+                ARCoreExtensions._instance.currentARCoreSessionHandle,
+                cameraConfig.nativeConfigurationHandle);
+        }
+
+        /// <summary>
+        /// Gets the stereo camera usage for this camera config.
+        /// </summary>
+        /// <param name="cameraConfig">An XRCameraConfiguration instance.</param>
+        /// <returns>Returns the stereo camera usage type.</returns>
+        public static CameraConfigStereoCameraUsage GetStereoCameraUsage(
+            this XRCameraConfiguration cameraConfig)
+        {
+            return CameraConfigApi.GetStereoCameraUsage(
                 ARCoreExtensions._instance.currentARCoreSessionHandle,
                 cameraConfig.nativeConfigurationHandle);
         }

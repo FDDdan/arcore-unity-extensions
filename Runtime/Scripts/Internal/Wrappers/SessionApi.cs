@@ -21,6 +21,7 @@
 namespace Google.XR.ARCoreExtensions.Internal
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.InteropServices;
     using UnityEngine;
@@ -125,8 +126,48 @@ namespace Google.XR.ARCoreExtensions.Internal
             return (FeatureMapQuality)featureMapQuality;
         }
 
+        public static RecordingStatus GetRecordingStatus(IntPtr sessionHandle)
+        {
+            ApiRecordingStatus apiStatus = ApiRecordingStatus.None;
+            ExternApi.ArSession_getRecordingStatus(sessionHandle, ref apiStatus);
+            return apiStatus.ToRecordingStatus();
+        }
+
+        public static RecordingResult StartRecording(
+            IntPtr sessionHandle, ARCoreRecordingConfig config)
+        {
+            IntPtr recordingConfigHandle = RecordingConfigApi.Create(sessionHandle, config);
+
+            ApiArStatus status = ExternApi.ArSession_startRecording(
+                sessionHandle, recordingConfigHandle);
+
+            RecordingConfigApi.Destroy(recordingConfigHandle);
+            return status.ToRecordingResult();
+        }
+
+        public static RecordingResult StopRecording(IntPtr sessionHandle)
+        {
+            ApiArStatus status = ExternApi.ArSession_stopRecording(sessionHandle);
+            return status.ToRecordingResult();
+        }
+
+        public static PlaybackStatus GetPlaybackStatus(IntPtr sessionHandle)
+        {
+            ApiPlaybackStatus apiStatus = ApiPlaybackStatus.None;
+            ExternApi.ArSession_getPlaybackStatus(sessionHandle, ref apiStatus);
+            return apiStatus.ToPlaybackStatus();
+        }
+
+        public static PlaybackResult SetPlaybackDataset(
+            IntPtr sessionHandle, string datasetFilepath)
+        {
+            ApiArStatus status =
+                ExternApi.ArSession_setPlaybackDataset(sessionHandle, datasetFilepath);
+            return status.ToPlaybackResult();
+        }
+
         [SuppressMessage("UnityRules.UnityStyleRules", "US1113:MethodsMustBeUpperCamelCase",
-         Justification = "External call.")]
+            Justification = "External call.")]
         private struct ExternApi
         {
             [DllImport(ApiConstants.ARCoreNativeApi)]
@@ -193,6 +234,26 @@ namespace Google.XR.ARCoreExtensions.Internal
                 IntPtr sessionHandle,
                 IntPtr configHandle,
                 ref ApiCloudAnchorMode mode);
+
+            [AndroidImport(ApiConstants.ARCoreNativeApi)]
+            public static extern void ArSession_getRecordingStatus(
+                IntPtr sessionHandle, ref ApiRecordingStatus recordingStatus);
+
+            [AndroidImport(ApiConstants.ARCoreNativeApi)]
+            public static extern ApiArStatus ArSession_startRecording(
+                IntPtr sessionHandle, IntPtr recordingConfigHandle);
+
+            [AndroidImport(ApiConstants.ARCoreNativeApi)]
+            public static extern ApiArStatus ArSession_stopRecording(
+                IntPtr sessionHandle);
+
+            [AndroidImport(ApiConstants.ARCoreNativeApi)]
+            public static extern void ArSession_getPlaybackStatus(
+                IntPtr sessionHandle, ref ApiPlaybackStatus playbackStatus);
+
+            [AndroidImport(ApiConstants.ARCoreNativeApi)]
+            public static extern ApiArStatus ArSession_setPlaybackDataset(
+                IntPtr sessionHandle, string datasetFilepath);
 #pragma warning restore 626
         }
     }

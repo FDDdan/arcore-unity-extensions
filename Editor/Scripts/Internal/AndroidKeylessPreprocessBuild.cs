@@ -31,11 +31,13 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
     /// This handles the addition and removal of dependencies into the App's build.
     /// For BatchMode builds, perform clean after a build is complete.
     /// </summary>
-    internal class AndroidKeylessPreprocessBuild : IPreprocessBuildWithReport
+    public class AndroidKeylessPreprocessBuild : IPreprocessBuildWithReport
     {
-        private const string _androidKeylessPluginGuid = "aafa8cb6617464d6290c8fdfb9607794";
         private const string _androidKeylessDependenciesGuid = "1fc346056f53a42949a3dcadaae39d67";
 
+        /// <summary>
+        /// Gets Callback order.
+        /// </summary>
         [SuppressMessage("UnityRules.UnityStyleRules",
          "US1109:PublicPropertiesMustBeUpperCamelCase", Justification = "Overriden property.")]
         public int callbackOrder
@@ -46,6 +48,11 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
             }
         }
 
+        /// <summary>
+        /// Callback after the build is done.
+        /// </summary>
+        /// <param name="target">Build target platform.</param>
+        /// <param name="pathToBuiltProject">Path to build project.</param>
         [PostProcessBuild(1)]
         public static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
         {
@@ -55,6 +62,27 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
             }
         }
 
+        /// <summary>
+        /// Preprocess step for Android Build.
+        /// </summary>
+        /// <param name="enabledKeyless">Whether to enable or disable keyless.</param>
+        public static void PreprocessAndroidBuild(bool enabledKeyless)
+        {
+            AndroidDependenciesHelper.UpdateAndroidDependencies(
+                enabledKeyless, _androidKeylessDependenciesGuid);
+
+            if (enabledKeyless)
+            {
+                Debug.Log("ARCoreExtensions: Including Keyless dependencies in this build.");
+                AndroidDependenciesHelper.DoPlayServicesResolve();
+            }
+        }
+
+        /// <summary>
+        /// Callback before the build is started.
+        /// </summary>
+        /// <param name="report">A report containing information about the build,
+        /// such as its target platform and output path.</param>
         public void OnPreprocessBuild(BuildReport report)
         {
             if (report.summary.platform == BuildTarget.Android)
@@ -69,26 +97,12 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
             }
         }
 
-        private static void PreprocessAndroidBuild(bool enabledKeyless)
-        {
-            AndroidDependenciesHelper.SetAndroidPluginEnabled(
-                enabledKeyless, _androidKeylessPluginGuid);
-            AndroidDependenciesHelper.UpdateAndroidDependencies(
-                enabledKeyless, _androidKeylessDependenciesGuid);
-
-           if (enabledKeyless)
-            {
-                Debug.Log("ARCoreExtensions: Including Keyless dependencies in this build.");
-                AndroidDependenciesHelper.DoPlayServicesResolve();
-            }
-        }
-
         private static void PostprocessAndroidBuild()
         {
             Debug.Log("ARCoreExtensions: Cleaning up Keyless dependencies.");
 
             // Run the pre-process step with <c>Keyless</c> disabled so project files get reset.
-            // Then run the PlayServicesResolver dependency resolution which will remove
+            // Then run the ExternalDependencyManager dependency resolution which will remove
             // the Keyless dependencies.
             PreprocessAndroidBuild(false);
             AndroidDependenciesHelper.DoPlayServicesResolve();
@@ -97,7 +111,21 @@ namespace Google.XR.ARCoreExtensions.Editor.Internal
         private static bool IsKeylessAuthenticationEnabled()
         {
             return ARCoreExtensionsProjectSettings.Instance.AndroidAuthenticationStrategySetting ==
-                AndroidAuthenticationStrategy.Keyless;
+                AndroidAuthenticationStrategy.Keyless && IsCloudAnchorModeEnabled();
+        }
+
+        private static bool IsCloudAnchorModeEnabled()
+        {
+            foreach (ARCoreExtensionsConfig config in
+                AndroidDependenciesHelper.GetAllSessionConfigs().Keys)
+            {
+                if (config.CloudAnchorMode != CloudAnchorMode.Disabled)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
